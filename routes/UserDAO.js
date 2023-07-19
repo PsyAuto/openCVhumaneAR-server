@@ -9,9 +9,15 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     description: "Unique identifier for the user"
     },
+    socketID: {
+      type: String,
+      required: false,
+      description: "Socket ID of the user"
+    },
     SelectedMarkerIndex: {
       type: Number,
       required: false,
+      default: -1,
       description: "Index of the selected marker"
     },
     NeighborKeywords: {
@@ -60,6 +66,44 @@ const UserDAO = {
    * @returns {Promise} A Promise that resolves to the created user.
    */
   create: function(user) {
+    return User.create(user);
+  },
+
+  /**
+   * Saves the socket ID for a user.
+   * @param {string} socketID - The socket ID to save.
+   * @returns {Promise} A Promise that resolves when the socket ID is saved.
+   */
+    saveSocketID: function(socketID) {
+      const user = new User({ socketID: socketID });
+      return User.updateOne({ socketID: socketID }, { $set: { socketID: socketID } });
+  },
+
+  /**
+   * Creates a new user in the database.
+   * Generates a unique 3-digit userID for the user.
+   * @param {Object} user - The user data to create.
+   * Saves the socket ID for the user.
+   * @param {string} socketID - The socket ID to save.
+   * @returns {Promise} A Promise that resolves to the created user.
+   * @returns 
+   */
+  createSocketID: function(user, socketID) {
+    // Generate a unique 3-digit userID for the user
+    let userID = Math.floor(Math.random() * 900) + 100;
+    // check if there is a user with the same userID
+    User.find({ userID: userID }, function(err, users) {
+      if (err) {
+        console.log(err);
+      } else {
+        // if there is a user with the same userID, generate a new userID
+        while (users.length > 0) {
+          userID = Math.floor(Math.random() * 900) + 100;
+        }
+      }
+    });
+    user.userID = userID;
+    user.socketID = socketID;
     return User.create(user);
   },
 
