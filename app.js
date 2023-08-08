@@ -23,7 +23,7 @@ SocketNamespace.on('connection', (socket) => {
   console.log(`a user connected to socketio with ID: ${socket.id}`);
 
   // create socket emit event to create user
-  socket.on('createSocketID', async (userData) => {
+  socket.on('createUser', async (userData) => {
     try {
       const user = await UserDAO.createSocketID(userData, socket.id);
       console.log(`User created with ID ${user.userID} ${user.socketID}`);
@@ -83,6 +83,27 @@ SocketNamespace.on('connection', (socket) => {
       console.error(`Error getting userIDs: ${error}`);
     }
   });
+
+  // create socket emit event to send a user by userID
+  socket.on('getUserByID', async (userID) => {
+    try {
+      const user = await UserDAO.findByUserID(userID);
+      socket.emit('userByID', user);
+    } catch (error) {
+      console.error(`Error getting userByUserID: ${error}`);
+    }
+  });
+
+    // create socket emit event to update user by userID
+    socket.on('updateUserByID', async (userID, userData) => {
+      try {
+        const user = await UserDAO.updateByUserID(userID, userData);
+        socket.emit('userUpdated', user);
+        console.log(`User updated with ID ${user.userID}`);
+      } catch (error) {
+        console.error(`Error updating user: ${error}`);
+      }
+    });
 });
 
 // http server api
